@@ -1,6 +1,8 @@
 package ies.carrillo.calculatorfca.activities;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -18,11 +20,12 @@ import ies.carrillo.calculatorfca.R;
 public class MainActivity extends AppCompatActivity {
 
     private TextView display; // Text view to show calculator output
-    private Stack<Double> numbers = new Stack<>(); // Use a Stack for operations
+    private TextView displayOperation; // Text view to show operation output
+    private final Stack<Double> numbers = new Stack<>(); // Use a Stack for operations
     private String currentOperator = ""; // Keep track of the current operator
     int duration = Toast.LENGTH_SHORT;
-    String text = "Error";
-    Toast toast = Toast.makeText(this, text, duration);
+  /*  private final String text = "Error";
+    private final Toast toast = Toast.makeText(this.getApplicationContext(), text, duration);*/
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         display = findViewById(R.id.tvResults); // Get the display text view
+        displayOperation = findViewById(R.id.tvOperation); // Get the display Operation text view
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -44,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Method to load UI components and set click listeners.
      */
+    @SuppressLint("SetTextI18n")
     public void loadingComponents() {
 
         numbers(); // Add functionality to number buttons
@@ -64,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
             numbers.clear();
             currentOperator = "";
             display.setText("");
+            displayOperation.setText("");
         });
 
         // Buttons for additional functionalities (implement logic later)
@@ -78,14 +84,13 @@ public class MainActivity extends AppCompatActivity {
 
         Button btnPorcent = findViewById(R.id.btnPercent);
         btnPorcent.setOnClickListener(v -> {
-            if (!numbers.isEmpty() && numbers.size() >= 1) {
+            if (!numbers.isEmpty()) {
                 double number = numbers.pop();
                 double percent = number / 100;
                 numbers.push(percent);
                 display.setText(String.valueOf(percent));
             }
         });
-        Button btnDot = findViewById(R.id.btnDot);
         // btnDot.setOnClickListener(v -> /* Implement functionality for decimal */);
 
         // Button to calculate the result
@@ -97,6 +102,7 @@ public class MainActivity extends AppCompatActivity {
                 double result = performOperation(firstNumber, secondNumber, currentOperator);
                 numbers.push(result);
                 display.setText(String.valueOf(result));
+                displayOperation.setText(firstNumber + currentOperator + secondNumber);
                 currentOperator = "";
             }
         });
@@ -105,11 +111,12 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Method to add functionality to number buttons.
      */
+    @SuppressLint("SetTextI18n")
     private void numbers() {
 
         // Get all number buttons and set click listeners to add the number to the display
         for (int i = 0; i <= 9; i++) {
-            int buttonId = getResources().getIdentifier("btn" + i, "id", getPackageName());
+            @SuppressLint("DiscouragedApi") int buttonId = getResources().getIdentifier("btn" + i, "id", getPackageName());
             Button btn = findViewById(buttonId);
             final double number = i;
             btn.setOnClickListener(v -> {
@@ -133,13 +140,16 @@ public class MainActivity extends AppCompatActivity {
             case "*":
                 return firstNumber * secondNumber;
             case "/":
-                if (secondNumber == 0) {
-                    toast.setText("Division by zero");
+                try {
+                    return firstNumber / secondNumber;
+                } catch (Exception e) {
+                   /* toast.setText(e.getMessage());
                     toast.show();
-                    throw new ArithmeticException("Division by zero");
-
+                    */
+                    Log.e("Math Error",e.getMessage());
                 }
-                return firstNumber / secondNumber;
+
+
             default:
 
                 return 0; // Handle invalid operator (optional)
